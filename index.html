@@ -1,4 +1,4 @@
-```html id="v2q6a8"
+```html
 <!DOCTYPE html>
 <html>
 
@@ -30,17 +30,9 @@ padding:10px;
 border-radius:6px;
 }
 
-input,textarea,button{
+input,textarea{
 margin:5px;
 padding:6px;
-}
-
-#adminPanel{
-display:none;
-background:#1a1a1a;
-padding:10px;
-margin-top:20px;
-border-radius:10px;
 }
 
 #map{
@@ -57,92 +49,111 @@ margin-top:20px;
 <h1>Archivo Lost Media</h1>
 <p>Base de datos comunitaria de contenido perdido de internet</p>
 
-<div>
-👁 Visitas: <span id="visitas">0</span>
-</div>
-
-<br>
-
 <input id="buscador" placeholder="Buscar lost media">
 
 <ul id="lista"></ul>
 
-<h2>📩 Pedir Lost Media</h2>
-
-<input id="pedidoNombre" placeholder="Tu nombre"><br>
-<textarea id="pedidoTexto" placeholder="Describe el lost media"></textarea><br>
-
-<button id="btnPedido">Enviar pedido</button>
-
-<ul id="listaPedidos"></ul>
-
 <h2>💬 Comentarios</h2>
 
-<input id="comentarioNombre" placeholder="Nombre"><br>
-<textarea id="comentarioTexto" placeholder="Comentario"></textarea><br>
+<input id="nombre" placeholder="Nombre">
+<textarea id="texto" placeholder="Comentario"></textarea>
 
-<button id="btnComentario">Comentar</button>
+<br>
 
-<ul id="listaComentarios"></ul>
+<button onclick="comentar()">Comentar</button>
+
+<ul id="comentarios"></ul>
 
 <h2>🗺️ Mapa</h2>
+
 <div id="map"></div>
-
-<audio id="musicaFondo" autoplay loop></audio>
-
-<div id="adminPanel">
-
-<h2>👑 Panel Admin</h2>
-
-<input id="nuevoCaso" placeholder="Nuevo lost media">
-<button id="btnAgregar">Añadir</button>
-
-<h3>🎵 Audio</h3>
-
-<input id="audioURL" placeholder="URL del audio">
-<button onclick="cambiarAudio()">Cambiar audio</button>
-<button onclick="quitarAudio()">Quitar audio</button>
-
-<h3>🖼 Fondo</h3>
-
-<input id="fondoURL" placeholder="URL del fondo">
-<button onclick="cambiarFondo()">Cambiar fondo</button>
-<button onclick="quitarFondo()">Quitar fondo</button>
-
-<h3>✏ Editar caso</h3>
-
-<input id="casoIndex" placeholder="Número del caso">
-<input id="nuevoNombreCaso" placeholder="Nuevo nombre">
-<button onclick="editarCaso()">Editar</button>
-
-<h3>🧹 Limpieza</h3>
-
-<button onclick="resetCasos()">Borrar casos</button>
-<button onclick="resetComentarios()">Borrar comentarios</button>
-<button onclick="resetPedidos()">Borrar pedidos</button>
-<button onclick="resetTodo()">⚠ BORRAR TODO</button>
-
-<h3>📊 Estadísticas</h3>
-
-Casos: <span id="statCasos"></span><br>
-Comentarios: <span id="statComentarios"></span><br>
-Pedidos: <span id="statPedidos"></span><br>
-
-</div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
 
-let password=prompt("Contraseña admin (si no eres admin deja vacío)")
+let lostMedia=[
+"LOL Superman",
+"Clockman",
+"Pocoyo Pilot",
+"Celebrity Number Six",
+"Go For A Punch",
+"Cry Baby Lane",
+"Hitogata",
+"No Me Pises Pa",
+"WhatsApp PS4"
+]
 
-let esAdmin=false
+function mostrar(){
 
-if(password==="adminlost"){
-esAdmin=true
-document.getElementById("adminPanel").style.display="block"
+let lista=document.getElementById("lista")
+
+lista.innerHTML=""
+
+lostMedia.forEach(c=>{
+
+let li=document.createElement("li")
+
+li.textContent=c
+
+lista.appendChild(li)
+
+})
+
 }
 
-let visitas=localStorage.getItem("visitas")||0
-visitas++
+function comentar(){
+
+let nombre=document.getElementById("nombre").value
+let texto=document.getElementById("texto").value
+
+if(!nombre || !texto) return
+
+let lista=document.getElementById("comentarios")
+
+let li=document.createElement("li")
+
+li.innerHTML="<b>"+nombre+"</b>: "+texto
+
+lista.appendChild(li)
+
+}
+
+document.getElementById("buscador").onkeyup=function(){
+
+let t=this.value.toLowerCase()
+
+let lista=document.getElementById("lista")
+
+lista.innerHTML=""
+
+lostMedia.filter(c=>c.toLowerCase().includes(t))
+.forEach(c=>{
+
+let li=document.createElement("li")
+
+li.textContent=c
+
+lista.appendChild(li)
+
+})
+
+}
+
+mostrar()
+
+window.onload=function(){
+
+let map=L.map('map').setView([20,0],2)
+
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
+maxZoom:19
+}).addTo(map)
+
+}
+
+</script>
+
+</body>
+</html>
 ```
