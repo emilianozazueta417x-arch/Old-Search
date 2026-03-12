@@ -1,10 +1,8 @@
+```html
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
 <title>Archivo Lost Media</title>
-
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 <style>
 
@@ -12,20 +10,7 @@ body{
 font-family:Arial;
 background:#111;
 color:white;
-margin:20px;
-}
-
-input,textarea,button{
-padding:8px;
-margin:5px;
-border-radius:6px;
-border:none;
-}
-
-button{
-background:#444;
-color:white;
-cursor:pointer;
+text-align:center;
 }
 
 ul{
@@ -40,303 +25,123 @@ padding:10px;
 border-radius:6px;
 }
 
-#map{
-height:400px;
-margin-top:20px;
+input,textarea,button{
+margin:5px;
+padding:6px;
 }
 
-.adminPanel{
-background:#1b1b1b;
+#adminPanel{
+display:none;
+background:#1a1a1a;
 padding:10px;
 margin-top:20px;
-border-radius:8px;
-display:none;
+border-radius:10px;
 }
 
-.encontrado{color:#00ff88;}
-.parcial{color:#ffd000;}
+#map{
+height:300px;
+margin-top:20px;
+}
 
 </style>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 </head>
 
 <body>
 
-<h1>📚 Archivo de Lost Media</h1>
+<h1>Archivo Lost Media</h1>
+<p>Base de datos comunitaria de contenido perdido de internet.</p>
 
-<input id="search" placeholder="Buscar lost media..." onkeyup="buscar()">
+<div>
+👁 Visitas: <span id="visitas">0</span>
+</div>
 
-<h3>Casos resueltos: <span id="contador">0</span></h3>
+<input id="buscador" placeholder="Buscar lost media..." onkeyup="buscar()">
 
-<ul id="lostList"></ul>
+<ul id="lista"></ul>
 
-<h2>🗺 Mapa de casos</h2>
-<div id="map"></div>
+<h2>📩 Pedir Lost Media</h2>
 
-<h2>💬 Comentarios</h2>
-
-<input id="comentarioNombre" placeholder="Tu nombre">
-<input id="comentarioTexto" placeholder="Escribe tu comentario">
-
-<button onclick="comentar()">Enviar</button>
-
-<ul id="comentarios"></ul>
-
-<h2>🧠 Teorías</h2>
-
-<input id="teoriaNombre" placeholder="Tu nombre">
-<input id="teoriaTexto" placeholder="Tu teoría">
-
-<button onclick="enviarTeoria()">Enviar teoría</button>
-
-<ul id="listaTeorias"></ul>
-
-<h2>📨 Pedir Lost Media</h2>
-
-<input id="pedidoTitulo" placeholder="Nombre del lost media">
-<textarea id="pedidoDescripcion" placeholder="Describe lo que recuerdes"></textarea>
+<input id="pedidoNombre" placeholder="Tu nombre"><br>
+<textarea id="pedidoTexto" placeholder="Describe el lost media"></textarea><br>
 
 <button onclick="enviarPedido()">Enviar pedido</button>
 
 <ul id="listaPedidos"></ul>
 
-<div class="adminPanel" id="adminPanel">
+<h2>💬 Comentarios</h2>
 
-<h2>👑 Panel Admin</h2>
+<input id="comentarioNombre" placeholder="Nombre"><br>
+<textarea id="comentarioTexto" placeholder="Comentario"></textarea><br>
 
-<input id="nuevoCaso" placeholder="Nuevo lost media">
+<button onclick="comentar()">Comentar</button>
 
-<button onclick="agregarCaso()">Añadir caso</button>
+<ul id="listaComentarios"></ul>
+
+<h2>🗺️ Mapa de casos</h2>
+<div id="map"></div>
+
+<div id="adminPanel">
+
+<h2>👑 Admin Panel</h2>
+
+<h3>Añadir caso</h3>
+
+<input id="nuevoCaso" placeholder="Nombre del lost media">
+<button onclick="agregarCaso()">Añadir</button>
+
+<h3>📊 Estadísticas</h3>
+
+Casos: <span id="statCasos"></span><br>
+Comentarios: <span id="statComentarios"></span><br>
+Pedidos: <span id="statPedidos"></span><br>
+
+<button onclick="resetearTodo()">⚠ Resetear sitio</button>
 
 </div>
 
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
 <script>
 
-let adminPassword="adminlost";
+let superAdminPassword="lostowner"
+let adminPassword="adminlost"
 
-if(prompt("Contraseña admin (dejar vacío si no eres admin)")===adminPassword){
-document.getElementById("adminPanel").style.display="block";
+let modo=prompt("Contraseña admin (si no eres admin deja vacío)")
+
+let esAdmin=false
+let esSuperAdmin=false
+
+if(modo===superAdminPassword){
+esSuperAdmin=true
+esAdmin=true
+document.getElementById("adminPanel").style.display="block"
 }
+
+else if(modo===adminPassword){
+esAdmin=true
+document.getElementById("adminPanel").style.display="block"
+}
+
+let visitas=localStorage.getItem("visitas")||0
+visitas++
+localStorage.setItem("visitas",visitas)
+document.getElementById("visitas").textContent=visitas
 
 let lostMedia=JSON.parse(localStorage.getItem("lostMedia"))||[
-{name:"Lol Superman",estado:"perdido"},
-{name:"No Me Pises Pa",estado:"perdido"},
-{name:"The Most Mysterious Song on the Internet",estado:"perdido"},
-{name:"Everyone Knows That",estado:"perdido"},
-{name:"Clockman",estado:"encontrado"},
-{name:"Cry Baby Lane",estado:"encontrado"},
-{name:"Saki Sanobashi",estado:"perdido"},
-{name:"Polybius",estado:"perdido"},
-{name:"Dead Bart",estado:"perdido"},
-{name:"SuicideMouse.avi",estado:"perdido"},
-{name:"Ben Drowned",estado:"perdido"},
-{name:"Candle Cove",estado:"perdido"},
-{name:"Hitogata",estado:"perdido"}
-];
-
-function guardarCasos(){
-localStorage.setItem("lostMedia",JSON.stringify(lostMedia));
-}
-
-function contador(){
-let resueltos=lostMedia.filter(x=>x.estado==="encontrado").length;
-document.getElementById("contador").innerText=resueltos;
-}
-
-function mostrarLista(lista){
-
-let ul=document.getElementById("lostList");
-ul.innerHTML="";
-
-lista.forEach((l,i)=>{
-
-let estadoTexto="";
-
-if(l.estado==="encontrado") estadoTexto="<span class='encontrado'>✔ ENCONTRADO</span>";
-if(l.estado==="parcial") estadoTexto="<span class='parcial'>⚠ PARCIAL</span>";
-
-let li=document.createElement("li");
-
-li.innerHTML=l.name+" "+estadoTexto+
-"<br><button onclick='marcar("+i+",\"encontrado\")'>Encontrado</button>"+
-"<button onclick='marcar("+i+",\"parcial\")'>Parcial</button>";
-
-ul.appendChild(li);
-
-});
-
-contador();
-
-}
-
-function buscar(){
-
-let t=document.getElementById("search").value.toLowerCase();
-
-let resultados=lostMedia.filter(x=>x.name.toLowerCase().includes(t));
-
-mostrarLista(resultados);
-
-}
-
-function marcar(i,estado){
-
-lostMedia[i].estado=estado;
-
-guardarCasos();
-
-mostrarLista(lostMedia);
-
-}
-
-function agregarCaso(){
-
-let nombre=document.getElementById("nuevoCaso").value;
-
-lostMedia.push({name:nombre,estado:"perdido"});
-
-guardarCasos();
-
-mostrarLista(lostMedia);
-
-}
-
-mostrarLista(lostMedia);
-
-let map=L.map('map').setView([20,0],2);
-
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
-L.marker([40,-74]).addTo(map).bindPopup("Lol Superman - USA");
-L.marker([19,-99]).addTo(map).bindPopup("No Me Pises Pa - México");
-L.marker([35,139]).addTo(map).bindPopup("Hitogata - Japón");
-
-let comentarios=JSON.parse(localStorage.getItem("comentarios"))||[];
-
-function mostrarComentarios(){
-
-let ul=document.getElementById("comentarios");
-ul.innerHTML="";
-
-comentarios.forEach((c,i)=>{
-
-let li=document.createElement("li");
-
-li.innerHTML="<b>"+c.nombre+"</b>: "+c.texto+
-"<br><button onclick='responder("+i+")'>Responder</button>"+
-"<div>"+(c.respuesta||"")+"</div>";
-
-ul.appendChild(li);
-
-});
-
-}
-
-function comentar(){
-
-let nombre=document.getElementById("comentarioNombre").value;
-let texto=document.getElementById("comentarioTexto").value;
-
-if(!nombre || !texto) return;
-
-comentarios.push({nombre,texto,respuesta:""});
-
-localStorage.setItem("comentarios",JSON.stringify(comentarios));
-
-mostrarComentarios();
-
-}
-
-function responder(i){
-
-let link=prompt("Pon el link del lost media encontrado");
-
-if(!link)return;
-
-comentarios[i].respuesta="🔎 "+link;
-
-localStorage.setItem("comentarios",JSON.stringify(comentarios));
-
-mostrarComentarios();
-
-}
-
-mostrarComentarios();
-
-let teorias=JSON.parse(localStorage.getItem("teorias"))||[];
-
-function mostrarTeorias(){
-
-let ul=document.getElementById("listaTeorias");
-ul.innerHTML="";
-
-teorias.forEach(t=>{
-
-let li=document.createElement("li");
-
-li.innerHTML="<b>"+t.nombre+"</b>: "+t.texto;
-
-ul.appendChild(li);
-
-});
-
-}
-
-function enviarTeoria(){
-
-let nombre=document.getElementById("teoriaNombre").value;
-let texto=document.getElementById("teoriaTexto").value;
-
-teorias.push({nombre,texto});
-
-localStorage.setItem("teorias",JSON.stringify(teorias));
-
-mostrarTeorias();
-
-}
-
-mostrarTeorias();
-
-let pedidos=JSON.parse(localStorage.getItem("pedidos"))||[];
-
-function mostrarPedidos(){
-
-let lista=document.getElementById("listaPedidos");
-
-lista.innerHTML="";
-
-pedidos.forEach(p=>{
-
-let li=document.createElement("li");
-
-li.innerHTML="<b>"+p.titulo+"</b><br>"+p.descripcion;
-
-lista.appendChild(li);
-
-});
-
-}
-
-function enviarPedido(){
-
-let titulo=document.getElementById("pedidoTitulo").value;
-let descripcion=document.getElementById("pedidoDescripcion").value;
-
-if(!titulo)return;
-
-pedidos.push({titulo,descripcion});
-
-localStorage.setItem("pedidos",JSON.stringify(pedidos));
-
-mostrarPedidos();
-
-}
-
-mostrarPedidos();
-
-</script>
-
-</body>
-</html>
+{name:"LOL Superman"},
+{name:"Clockman"},
+{name:"Pocoyo Pilot"},
+{name:"Cry Baby Lane Original"},
+{name:"Go For A Punch"},
+{name:"The Most Mysterious Song"},
+{name:"Celebrity Number Six"},
+{name:"No Me Pises Pa"},
+{name:"WhatsApp PS4"},
+{name:"Hitogata"}
+]
+
+let comentarios=JSON.parse(localStorage.getItem("comentarios"))||[]
+let pedidos=JSON.parse
+```
