@@ -1,11 +1,11 @@
-```html
+```html id="v2q6a8"
 <!DOCTYPE html>
 <html>
 
 <head>
 
 <meta charset="UTF-8">
-<title>Archivo Lost Media</title>
+<title>Old Search</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
@@ -88,12 +88,39 @@ margin-top:20px;
 <h2>🗺️ Mapa</h2>
 <div id="map"></div>
 
+<audio id="musicaFondo" autoplay loop></audio>
+
 <div id="adminPanel">
 
 <h2>👑 Panel Admin</h2>
 
 <input id="nuevoCaso" placeholder="Nuevo lost media">
 <button id="btnAgregar">Añadir</button>
+
+<h3>🎵 Audio</h3>
+
+<input id="audioURL" placeholder="URL del audio">
+<button onclick="cambiarAudio()">Cambiar audio</button>
+<button onclick="quitarAudio()">Quitar audio</button>
+
+<h3>🖼 Fondo</h3>
+
+<input id="fondoURL" placeholder="URL del fondo">
+<button onclick="cambiarFondo()">Cambiar fondo</button>
+<button onclick="quitarFondo()">Quitar fondo</button>
+
+<h3>✏ Editar caso</h3>
+
+<input id="casoIndex" placeholder="Número del caso">
+<input id="nuevoNombreCaso" placeholder="Nuevo nombre">
+<button onclick="editarCaso()">Editar</button>
+
+<h3>🧹 Limpieza</h3>
+
+<button onclick="resetCasos()">Borrar casos</button>
+<button onclick="resetComentarios()">Borrar comentarios</button>
+<button onclick="resetPedidos()">Borrar pedidos</button>
+<button onclick="resetTodo()">⚠ BORRAR TODO</button>
 
 <h3>📊 Estadísticas</h3>
 
@@ -116,190 +143,6 @@ esAdmin=true
 document.getElementById("adminPanel").style.display="block"
 }
 
-let visitas=localStorage.getItem("visitas") || 0
+let visitas=localStorage.getItem("visitas")||0
 visitas++
-localStorage.setItem("visitas",visitas)
-document.getElementById("visitas").textContent=visitas
-
-let lostMedia=JSON.parse(localStorage.getItem("lostMedia")) || [
-{name:"LOL Superman"},
-{name:"Clockman"},
-{name:"Pocoyo Pilot"},
-{name:"Celebrity Number Six"},
-{name:"Go For A Punch"},
-{name:"Cry Baby Lane Original"},
-{name:"No Me Pises Pa"},
-{name:"WhatsApp PS4"},
-{name:"Hitogata"}
-]
-
-let comentarios=JSON.parse(localStorage.getItem("comentarios")) || []
-let pedidos=JSON.parse(localStorage.getItem("pedidos")) || []
-
-function guardar(){
-
-localStorage.setItem("lostMedia",JSON.stringify(lostMedia))
-localStorage.setItem("comentarios",JSON.stringify(comentarios))
-localStorage.setItem("pedidos",JSON.stringify(pedidos))
-
-actualizarStats()
-
-}
-
-function mostrarLista(){
-
-let lista=document.getElementById("lista")
-lista.innerHTML=""
-
-lostMedia.forEach((c,i)=>{
-
-let li=document.createElement("li")
-
-li.textContent=c.name
-
-if(esAdmin){
-
-let b=document.createElement("button")
-b.textContent="Eliminar"
-
-b.onclick=function(){
-
-lostMedia.splice(i,1)
-guardar()
-mostrarLista()
-
-}
-
-li.appendChild(b)
-
-}
-
-lista.appendChild(li)
-
-})
-
-}
-
-function buscar(){
-
-let texto=document.getElementById("buscador").value.toLowerCase()
-
-let lista=document.getElementById("lista")
-lista.innerHTML=""
-
-lostMedia.filter(c=>c.name.toLowerCase().includes(texto))
-.forEach(c=>{
-
-let li=document.createElement("li")
-li.textContent=c.name
-lista.appendChild(li)
-
-})
-
-}
-
-function comentar(){
-
-let nombre=document.getElementById("comentarioNombre").value
-let texto=document.getElementById("comentarioTexto").value
-
-if(!nombre || !texto) return
-
-comentarios.push({nombre,texto})
-
-guardar()
-mostrarComentarios()
-
-}
-
-function mostrarComentarios(){
-
-let lista=document.getElementById("listaComentarios")
-lista.innerHTML=""
-
-comentarios.forEach(c=>{
-
-let li=document.createElement("li")
-li.innerHTML="<b>"+c.nombre+"</b>: "+c.texto
-
-lista.appendChild(li)
-
-})
-
-}
-
-function enviarPedido(){
-
-let nombre=document.getElementById("pedidoNombre").value
-let texto=document.getElementById("pedidoTexto").value
-
-if(!nombre || !texto) return
-
-pedidos.push({nombre,texto})
-
-guardar()
-mostrarPedidos()
-
-}
-
-function mostrarPedidos(){
-
-let lista=document.getElementById("listaPedidos")
-lista.innerHTML=""
-
-pedidos.forEach(p=>{
-
-let li=document.createElement("li")
-li.innerHTML="<b>"+p.nombre+"</b>: "+p.texto
-
-lista.appendChild(li)
-
-})
-
-}
-
-function agregarCaso(){
-
-let nombre=document.getElementById("nuevoCaso").value
-if(!nombre) return
-
-lostMedia.push({name:nombre})
-
-guardar()
-mostrarLista()
-
-}
-
-function actualizarStats(){
-
-document.getElementById("statCasos").textContent=lostMedia.length
-document.getElementById("statComentarios").textContent=comentarios.length
-document.getElementById("statPedidos").textContent=pedidos.length
-
-}
-
-document.getElementById("btnComentario").onclick=comentar
-document.getElementById("btnPedido").onclick=enviarPedido
-document.getElementById("btnAgregar").onclick=agregarCaso
-document.getElementById("buscador").onkeyup=buscar
-
-mostrarLista()
-mostrarComentarios()
-mostrarPedidos()
-actualizarStats()
-
-window.onload=function(){
-
-let map=L.map('map').setView([20,0],2)
-
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
-maxZoom:19
-}).addTo(map)
-
-}
-
-</script>
-
-</body>
-</html>
 ```
