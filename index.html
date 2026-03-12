@@ -30,9 +30,17 @@ padding:10px;
 border-radius:6px;
 }
 
-input,textarea{
+input,textarea,button{
 margin:5px;
 padding:6px;
+}
+
+#adminPanel{
+display:none;
+background:#1a1a1a;
+padding:10px;
+margin-top:20px;
+border-radius:10px;
 }
 
 #map{
@@ -49,53 +57,141 @@ margin-top:20px;
 <h1>Archivo Lost Media</h1>
 <p>Base de datos comunitaria de contenido perdido de internet</p>
 
+<div>
+👁 Visitas: <span id="visitas">0</span>
+</div>
+
+<br>
+
 <input id="buscador" placeholder="Buscar lost media">
 
 <ul id="lista"></ul>
 
+<h2>📩 Pedir Lost Media</h2>
+
+<input id="pedidoNombre" placeholder="Tu nombre"><br>
+<textarea id="pedidoTexto" placeholder="Describe el lost media"></textarea><br>
+
+<button id="btnPedido">Enviar pedido</button>
+
+<ul id="listaPedidos"></ul>
+
 <h2>💬 Comentarios</h2>
 
-<input id="nombre" placeholder="Nombre">
-<textarea id="texto" placeholder="Comentario"></textarea>
+<input id="comentarioNombre" placeholder="Nombre"><br>
+<textarea id="comentarioTexto" placeholder="Comentario"></textarea><br>
 
-<br>
+<button id="btnComentario">Comentar</button>
 
-<button onclick="comentar()">Comentar</button>
-
-<ul id="comentarios"></ul>
+<ul id="listaComentarios"></ul>
 
 <h2>🗺️ Mapa</h2>
-
 <div id="map"></div>
+
+<div id="adminPanel">
+
+<h2>👑 Panel Admin</h2>
+
+<input id="nuevoCaso" placeholder="Nuevo lost media">
+<button id="btnAgregar">Añadir</button>
+
+<h3>📊 Estadísticas</h3>
+
+Casos: <span id="statCasos"></span><br>
+Comentarios: <span id="statComentarios"></span><br>
+Pedidos: <span id="statPedidos"></span><br>
+
+</div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
 
-let lostMedia=[
-"LOL Superman",
-"Clockman",
-"Pocoyo Pilot",
-"Celebrity Number Six",
-"Go For A Punch",
-"Cry Baby Lane",
-"Hitogata",
-"No Me Pises Pa",
-"WhatsApp PS4"
+let password=prompt("Contraseña admin (si no eres admin deja vacío)")
+
+let esAdmin=false
+
+if(password==="adminlost"){
+esAdmin=true
+document.getElementById("adminPanel").style.display="block"
+}
+
+let visitas=localStorage.getItem("visitas") || 0
+visitas++
+localStorage.setItem("visitas",visitas)
+document.getElementById("visitas").textContent=visitas
+
+let lostMedia=JSON.parse(localStorage.getItem("lostMedia")) || [
+{name:"LOL Superman"},
+{name:"Clockman"},
+{name:"Pocoyo Pilot"},
+{name:"Celebrity Number Six"},
+{name:"Go For A Punch"},
+{name:"Cry Baby Lane Original"},
+{name:"No Me Pises Pa"},
+{name:"WhatsApp PS4"},
+{name:"Hitogata"}
 ]
 
-function mostrar(){
+let comentarios=JSON.parse(localStorage.getItem("comentarios")) || []
+let pedidos=JSON.parse(localStorage.getItem("pedidos")) || []
+
+function guardar(){
+
+localStorage.setItem("lostMedia",JSON.stringify(lostMedia))
+localStorage.setItem("comentarios",JSON.stringify(comentarios))
+localStorage.setItem("pedidos",JSON.stringify(pedidos))
+
+actualizarStats()
+
+}
+
+function mostrarLista(){
 
 let lista=document.getElementById("lista")
-
 lista.innerHTML=""
 
-lostMedia.forEach(c=>{
+lostMedia.forEach((c,i)=>{
 
 let li=document.createElement("li")
 
-li.textContent=c
+li.textContent=c.name
 
+if(esAdmin){
+
+let b=document.createElement("button")
+b.textContent="Eliminar"
+
+b.onclick=function(){
+
+lostMedia.splice(i,1)
+guardar()
+mostrarLista()
+
+}
+
+li.appendChild(b)
+
+}
+
+lista.appendChild(li)
+
+})
+
+}
+
+function buscar(){
+
+let texto=document.getElementById("buscador").value.toLowerCase()
+
+let lista=document.getElementById("lista")
+lista.innerHTML=""
+
+lostMedia.filter(c=>c.name.toLowerCase().includes(texto))
+.forEach(c=>{
+
+let li=document.createElement("li")
+li.textContent=c.name
 lista.appendChild(li)
 
 })
@@ -104,35 +200,27 @@ lista.appendChild(li)
 
 function comentar(){
 
-let nombre=document.getElementById("nombre").value
-let texto=document.getElementById("texto").value
+let nombre=document.getElementById("comentarioNombre").value
+let texto=document.getElementById("comentarioTexto").value
 
 if(!nombre || !texto) return
 
-let lista=document.getElementById("comentarios")
+comentarios.push({nombre,texto})
 
-let li=document.createElement("li")
-
-li.innerHTML="<b>"+nombre+"</b>: "+texto
-
-lista.appendChild(li)
+guardar()
+mostrarComentarios()
 
 }
 
-document.getElementById("buscador").onkeyup=function(){
+function mostrarComentarios(){
 
-let t=this.value.toLowerCase()
-
-let lista=document.getElementById("lista")
-
+let lista=document.getElementById("listaComentarios")
 lista.innerHTML=""
 
-lostMedia.filter(c=>c.toLowerCase().includes(t))
-.forEach(c=>{
+comentarios.forEach(c=>{
 
 let li=document.createElement("li")
-
-li.textContent=c
+li.innerHTML="<b>"+c.nombre+"</b>: "+c.texto
 
 lista.appendChild(li)
 
@@ -140,7 +228,65 @@ lista.appendChild(li)
 
 }
 
-mostrar()
+function enviarPedido(){
+
+let nombre=document.getElementById("pedidoNombre").value
+let texto=document.getElementById("pedidoTexto").value
+
+if(!nombre || !texto) return
+
+pedidos.push({nombre,texto})
+
+guardar()
+mostrarPedidos()
+
+}
+
+function mostrarPedidos(){
+
+let lista=document.getElementById("listaPedidos")
+lista.innerHTML=""
+
+pedidos.forEach(p=>{
+
+let li=document.createElement("li")
+li.innerHTML="<b>"+p.nombre+"</b>: "+p.texto
+
+lista.appendChild(li)
+
+})
+
+}
+
+function agregarCaso(){
+
+let nombre=document.getElementById("nuevoCaso").value
+if(!nombre) return
+
+lostMedia.push({name:nombre})
+
+guardar()
+mostrarLista()
+
+}
+
+function actualizarStats(){
+
+document.getElementById("statCasos").textContent=lostMedia.length
+document.getElementById("statComentarios").textContent=comentarios.length
+document.getElementById("statPedidos").textContent=pedidos.length
+
+}
+
+document.getElementById("btnComentario").onclick=comentar
+document.getElementById("btnPedido").onclick=enviarPedido
+document.getElementById("btnAgregar").onclick=agregarCaso
+document.getElementById("buscador").onkeyup=buscar
+
+mostrarLista()
+mostrarComentarios()
+mostrarPedidos()
+actualizarStats()
 
 window.onload=function(){
 
