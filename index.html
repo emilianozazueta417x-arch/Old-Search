@@ -2,7 +2,12 @@
 <!DOCTYPE html>
 <html>
 <head>
+
 <title>Archivo Lost Media</title>
+
+<meta charset="UTF-8">
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
 <style>
 
@@ -45,21 +50,20 @@ margin-top:20px;
 
 </style>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
 </head>
 
 <body>
 
 <h1>Archivo Lost Media</h1>
-<p>Base de datos comunitaria de contenido perdido de internet.</p>
+<p>Base de datos comunitaria de contenido perdido de internet</p>
 
 <div>
 👁 Visitas: <span id="visitas">0</span>
 </div>
 
-<input id="buscador" placeholder="Buscar lost media..." onkeyup="buscar()">
+<br>
+
+<input id="buscador" placeholder="Buscar lost media">
 
 <ul id="lista"></ul>
 
@@ -67,8 +71,7 @@ margin-top:20px;
 
 <input id="pedidoNombre" placeholder="Tu nombre"><br>
 <textarea id="pedidoTexto" placeholder="Describe el lost media"></textarea><br>
-
-<button onclick="enviarPedido()">Enviar pedido</button>
+<button id="btnPedido">Enviar pedido</button>
 
 <ul id="listaPedidos"></ul>
 
@@ -76,22 +79,19 @@ margin-top:20px;
 
 <input id="comentarioNombre" placeholder="Nombre"><br>
 <textarea id="comentarioTexto" placeholder="Comentario"></textarea><br>
-
-<button onclick="comentar()">Comentar</button>
+<button id="btnComentario">Comentar</button>
 
 <ul id="listaComentarios"></ul>
 
-<h2>🗺️ Mapa de casos</h2>
+<h2>🗺️ Mapa</h2>
 <div id="map"></div>
 
 <div id="adminPanel">
 
-<h2>👑 Admin Panel</h2>
+<h2>👑 Panel Admin</h2>
 
-<h3>Añadir caso</h3>
-
-<input id="nuevoCaso" placeholder="Nombre del lost media">
-<button onclick="agregarCaso()">Añadir</button>
+<input id="nuevoCaso" placeholder="Nuevo lost media">
+<button id="btnAgregar">Añadir</button>
 
 <h3>📊 Estadísticas</h3>
 
@@ -99,49 +99,112 @@ Casos: <span id="statCasos"></span><br>
 Comentarios: <span id="statComentarios"></span><br>
 Pedidos: <span id="statPedidos"></span><br>
 
-<button onclick="resetearTodo()">⚠ Resetear sitio</button>
-
 </div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
 
-let superAdminPassword="lostowner"
-let adminPassword="adminlost"
-
-let modo=prompt("Contraseña admin (si no eres admin deja vacío)")
+let password=prompt("Contraseña admin (si no eres admin deja vacío)")
 
 let esAdmin=false
-let esSuperAdmin=false
 
-if(modo===superAdminPassword){
-esSuperAdmin=true
+if(password==="admin123"){
 esAdmin=true
 document.getElementById("adminPanel").style.display="block"
 }
 
-else if(modo===adminPassword){
-esAdmin=true
-document.getElementById("adminPanel").style.display="block"
-}
-
-let visitas=localStorage.getItem("visitas")||0
+let visitas=localStorage.getItem("visitas") || 0
 visitas++
 localStorage.setItem("visitas",visitas)
 document.getElementById("visitas").textContent=visitas
 
-let lostMedia=JSON.parse(localStorage.getItem("lostMedia"))||[
+let lostMedia=JSON.parse(localStorage.getItem("lostMedia")) || [
 {name:"LOL Superman"},
 {name:"Clockman"},
 {name:"Pocoyo Pilot"},
-{name:"Cry Baby Lane Original"},
-{name:"Go For A Punch"},
-{name:"The Most Mysterious Song"},
 {name:"Celebrity Number Six"},
+{name:"Go For A Punch"},
+{name:"Cry Baby Lane Original"},
 {name:"No Me Pises Pa"},
 {name:"WhatsApp PS4"},
 {name:"Hitogata"}
 ]
 
-let comentarios=JSON.parse(localStorage.getItem("comentarios"))||[]
-let pedidos=JSON.parse
+let comentarios=JSON.parse(localStorage.getItem("comentarios")) || []
+let pedidos=JSON.parse(localStorage.getItem("pedidos")) || []
+
+function guardar(){
+
+localStorage.setItem("lostMedia",JSON.stringify(lostMedia))
+localStorage.setItem("comentarios",JSON.stringify(comentarios))
+localStorage.setItem("pedidos",JSON.stringify(pedidos))
+
+actualizarStats()
+
+}
+
+function mostrarLista(){
+
+let lista=document.getElementById("lista")
+
+lista.innerHTML=""
+
+lostMedia.forEach((c,i)=>{
+
+let li=document.createElement("li")
+
+li.textContent=c.name
+
+if(esAdmin){
+
+let b=document.createElement("button")
+b.textContent="Eliminar"
+b.onclick=function(){
+
+lostMedia.splice(i,1)
+
+guardar()
+mostrarLista()
+
+}
+
+li.appendChild(b)
+
+}
+
+lista.appendChild(li)
+
+})
+
+}
+
+function buscar(){
+
+let texto=document.getElementById("buscador").value.toLowerCase()
+
+let lista=document.getElementById("lista")
+
+lista.innerHTML=""
+
+lostMedia.filter(c=>c.name.toLowerCase().includes(texto))
+.forEach(c=>{
+
+let li=document.createElement("li")
+li.textContent=c.name
+lista.appendChild(li)
+
+})
+
+}
+
+function comentar(){
+
+let nombre=document.getElementById("comentarioNombre").value
+let texto=document.getElementById("comentarioTexto").value
+
+if(!nombre || !texto) return
+
+comentarios.push({nomb
 ```
+
