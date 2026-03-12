@@ -1,11 +1,11 @@
 ```html
 <!DOCTYPE html>
 <html>
+
 <head>
 
-<title>Archivo Lost Media</title>
-
 <meta charset="UTF-8">
+<title>Archivo Lost Media</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
@@ -71,6 +71,7 @@ margin-top:20px;
 
 <input id="pedidoNombre" placeholder="Tu nombre"><br>
 <textarea id="pedidoTexto" placeholder="Describe el lost media"></textarea><br>
+
 <button id="btnPedido">Enviar pedido</button>
 
 <ul id="listaPedidos"></ul>
@@ -79,6 +80,7 @@ margin-top:20px;
 
 <input id="comentarioNombre" placeholder="Nombre"><br>
 <textarea id="comentarioTexto" placeholder="Comentario"></textarea><br>
+
 <button id="btnComentario">Comentar</button>
 
 <ul id="listaComentarios"></ul>
@@ -109,7 +111,7 @@ let password=prompt("Contraseña admin (si no eres admin deja vacío)")
 
 let esAdmin=false
 
-if(password==="admin123"){
+if(password==="adminlost"){
 esAdmin=true
 document.getElementById("adminPanel").style.display="block"
 }
@@ -147,7 +149,6 @@ actualizarStats()
 function mostrarLista(){
 
 let lista=document.getElementById("lista")
-
 lista.innerHTML=""
 
 lostMedia.forEach((c,i)=>{
@@ -160,10 +161,10 @@ if(esAdmin){
 
 let b=document.createElement("button")
 b.textContent="Eliminar"
+
 b.onclick=function(){
 
 lostMedia.splice(i,1)
-
 guardar()
 mostrarLista()
 
@@ -184,7 +185,6 @@ function buscar(){
 let texto=document.getElementById("buscador").value.toLowerCase()
 
 let lista=document.getElementById("lista")
-
 lista.innerHTML=""
 
 lostMedia.filter(c=>c.name.toLowerCase().includes(texto))
@@ -205,6 +205,101 @@ let texto=document.getElementById("comentarioTexto").value
 
 if(!nombre || !texto) return
 
-comentarios.push({nomb
-```
+comentarios.push({nombre,texto})
 
+guardar()
+mostrarComentarios()
+
+}
+
+function mostrarComentarios(){
+
+let lista=document.getElementById("listaComentarios")
+lista.innerHTML=""
+
+comentarios.forEach(c=>{
+
+let li=document.createElement("li")
+li.innerHTML="<b>"+c.nombre+"</b>: "+c.texto
+
+lista.appendChild(li)
+
+})
+
+}
+
+function enviarPedido(){
+
+let nombre=document.getElementById("pedidoNombre").value
+let texto=document.getElementById("pedidoTexto").value
+
+if(!nombre || !texto) return
+
+pedidos.push({nombre,texto})
+
+guardar()
+mostrarPedidos()
+
+}
+
+function mostrarPedidos(){
+
+let lista=document.getElementById("listaPedidos")
+lista.innerHTML=""
+
+pedidos.forEach(p=>{
+
+let li=document.createElement("li")
+li.innerHTML="<b>"+p.nombre+"</b>: "+p.texto
+
+lista.appendChild(li)
+
+})
+
+}
+
+function agregarCaso(){
+
+let nombre=document.getElementById("nuevoCaso").value
+if(!nombre) return
+
+lostMedia.push({name:nombre})
+
+guardar()
+mostrarLista()
+
+}
+
+function actualizarStats(){
+
+document.getElementById("statCasos").textContent=lostMedia.length
+document.getElementById("statComentarios").textContent=comentarios.length
+document.getElementById("statPedidos").textContent=pedidos.length
+
+}
+
+document.getElementById("btnComentario").onclick=comentar
+document.getElementById("btnPedido").onclick=enviarPedido
+document.getElementById("btnAgregar").onclick=agregarCaso
+document.getElementById("buscador").onkeyup=buscar
+
+mostrarLista()
+mostrarComentarios()
+mostrarPedidos()
+actualizarStats()
+
+window.onload=function(){
+
+let map=L.map('map').setView([20,0],2)
+
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
+maxZoom:19
+}).addTo(map)
+
+}
+
+</script>
+
+</body>
+</html>
+```
